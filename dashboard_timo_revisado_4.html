@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard - Grupo TIMO</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --ink:#1a1a1a;--ink-m:#5a5a5a;--ink-f:#9a9a9a;
+  --paper:#f8f6f2;--cream:#f0e8dc;--border:#d0c4b0;--rule:#c0a880;
+  --green:#1e6b3a;--green-l:#e4f0ea;--red:#8b2020;--red-l:#fdf0f0;
+  --gold:#9a7208;--blue:#1a3d6b;
+  --c1:#2d6a4f;--c2:#8b3a1e;--c3:#1a4d7a;
+}
+body{font-family:"DM Sans",sans-serif;background:var(--paper);color:var(--ink);font-size:14px}
+.hdr{background:var(--ink);color:#faf8f4;padding:24px 32px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px}
+.hdr h1{font-family:"Playfair Display",serif;font-size:26px;font-weight:900}
+.hdr h1 em{color:#c8a830;font-style:normal}
+.hdr-sub{font-size:10px;color:#8a8070;margin-top:3px;font-family:"DM Mono",monospace;letter-spacing:1px}
+.hdr-kpis{display:flex;gap:20px;flex-wrap:wrap}
+.hkpi label{display:block;font-family:"DM Mono",monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:#6a6258;margin-bottom:2px}
+.hkpi strong{font-family:"Playfair Display",serif;font-size:17px;color:#faf8f4}
+.hkpi.pos strong{color:#7ab87a}.hkpi.neg strong{color:#e07070}.hkpi.gold strong{color:#c8a830}
+.unit-bar{display:flex;background:#fff;border-bottom:2px solid var(--border);padding:0 28px;overflow-x:auto}
+.ubtn{padding:11px 18px;font-family:"DM Mono",monospace;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--ink-f);background:none;border:none;cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-2px;white-space:nowrap;display:flex;align-items:center;gap:6px}
+.ubtn.active{color:var(--ink);font-weight:700}
+.ubtn[data-u="Gruppo"].active{border-color:var(--gold)}
+.ubtn[data-u="Centrale"].active{border-color:var(--c1)}
+.ubtn[data-u="El Carbon JK"].active{border-color:var(--c2)}
+.ubtn[data-u="Timo JK"].active{border-color:var(--c3)}
+.dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+.tab-bar{display:flex;background:#f5f0e8;border-bottom:1px solid var(--border);padding:0 28px;overflow-x:auto}
+.tbtn{padding:9px 14px;font-family:"DM Mono",monospace;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--ink-f);background:none;border:none;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap}
+.tbtn.active{color:var(--ink);border-bottom-color:var(--gold);font-weight:600}
+.tab-pane{display:none}.tab-pane.active{display:block}
+.page{padding:22px 28px 52px}
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:2px;background:var(--border);border:1px solid var(--border);border-radius:3px;overflow:hidden;margin-bottom:20px}
+.kpi-c{background:#fff;padding:15px 13px}
+.kl{font-family:"DM Mono",monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--ink-f);display:block;margin-bottom:6px}
+.kv{font-family:"Playfair Display",serif;font-size:21px;font-weight:700;display:block;line-height:1.1}
+.ks{font-size:10px;color:var(--ink-f);margin-top:3px}
+.kv.pos{color:var(--green)}.kv.neg{color:var(--red)}.kv.gold{color:var(--gold)}.kv.blue{color:var(--blue)}
+.chart-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(185px,1fr));gap:12px;margin-bottom:20px}
+.chart-box{background:#fff;border:1px solid var(--border);border-radius:3px;padding:13px 14px}
+.chart-box h4{font-family:"DM Mono",monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--ink-f);margin-bottom:9px}
+.mini-bars{display:flex;align-items:flex-end;gap:2px;height:64px;margin-bottom:3px}
+.mb{flex:1;border-radius:1px 1px 0 0;min-width:3px;cursor:default;position:relative}
+.mb:hover{opacity:.75}
+.mb[title]:hover::after{content:attr(title);position:absolute;bottom:calc(100% + 4px);left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;font-family:"DM Mono",monospace;font-size:10px;padding:3px 8px;border-radius:2px;white-space:nowrap;z-index:20;pointer-events:none}
+.chart-lbls{display:flex;gap:2px}
+.chart-lbls span{flex:1;font-family:"DM Mono",monospace;font-size:7px;color:var(--ink-f);text-align:center;overflow:hidden;white-space:nowrap}
+.bp{background:var(--green)}.bn{background:#d06060}.bg{background:var(--gold)}.bb{background:var(--blue)}
+.tw{overflow-x:auto;border:1px solid var(--border);border-radius:3px;max-height:calc(100vh - 300px);overflow-y:auto;margin-top:16px}
+.tw::-webkit-scrollbar{height:5px;width:5px}.tw::-webkit-scrollbar-track{background:var(--cream)}.tw::-webkit-scrollbar-thumb{background:var(--rule);border-radius:2px}
+table.dt{border-collapse:collapse;width:max-content;min-width:100%}
+table.dt thead th{background:var(--ink);color:#faf8f4;font-family:"DM Mono",monospace;font-size:9px;letter-spacing:1px;text-transform:uppercase;padding:9px 11px;white-space:nowrap;position:sticky;top:0;z-index:5;text-align:right}
+table.dt thead th:first-child{text-align:left;position:sticky;left:0;z-index:10;min-width:210px;background:var(--ink)}
+table.dt thead th.ct{background:#2a3020;border-left:2px solid rgba(255,255,255,.15)}
+table.dt tbody td{padding:6px 11px;white-space:nowrap;border-bottom:1px solid var(--border);font-family:"DM Mono",monospace;font-size:11.5px;text-align:right}
+table.dt tbody td:first-child{position:sticky;left:0;background:var(--paper);font-family:"DM Sans",sans-serif;font-weight:500;font-size:12px;text-align:left;z-index:4;border-right:1px solid var(--border)}
+table.dt tbody tr:hover td{background:#ece6de}
+table.dt tbody tr:hover td:first-child{background:#ece6de}
+tr.sec td{background:var(--ink)!important;color:#faf8f4!important;font-family:"DM Mono",monospace!important;font-size:10px!important;letter-spacing:1px!important;font-weight:700!important;padding:7px 11px!important}
+tr.sub td{background:var(--cream)!important;font-weight:700!important;border-top:1px solid var(--rule)!important}
+tr.tot td{background:#1a2e1a!important;color:#faf8f4!important;font-weight:700!important;font-size:12px!important}
+tr.ind td:first-child{padding-left:22px!important;color:var(--ink-m)!important;font-weight:400!important;font-size:11px!important}
+.pos{color:var(--green)!important}.neg{color:var(--red)!important}.mu{color:var(--ink-f)!important}
+td.ct{background:#f0e8d8!important;font-weight:700!important;border-left:2px solid var(--rule)!important}
+.cw{overflow-x:auto;border:1px solid var(--border);border-radius:3px}
+table.cm{border-collapse:collapse;width:100%}
+table.cm th{background:var(--ink);color:#faf8f4;font-family:"DM Mono",monospace;font-size:9px;letter-spacing:1px;text-transform:uppercase;padding:9px 12px;white-space:nowrap;text-align:center}
+table.cm th:first-child{text-align:left}
+table.cm td{padding:7px 12px;border-bottom:1px solid var(--border);font-family:"DM Mono",monospace;font-size:11px;text-align:center}
+table.cm td:first-child{font-family:"DM Sans",sans-serif;font-weight:600;text-align:left}
+table.cm tr:nth-child(even) td{background:var(--cream)}
+table.cm tr.trpos td{background:#e4f0ea!important}
+table.cm tr.trneg td{background:#fff0f0!important}
+table.cm tr.trtot td{background:var(--ink)!important;color:#faf8f4!important;font-weight:700!important}
+.toolbar{display:flex;align-items:center;gap:10px;padding:10px 0;flex-wrap:wrap}
+.mbtn{padding:5px 12px;border:1px solid var(--border);border-radius:100px;font-family:"DM Mono",monospace;font-size:10px;letter-spacing:1px;text-transform:uppercase;background:#fff;cursor:pointer;color:var(--ink-m)}
+.mbtn.active{background:var(--ink);color:#faf8f4;border-color:var(--ink)}
+.tlbl{font-family:"DM Mono",monospace;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--ink-f)}
+.note{background:#fff8e8;border:1px solid #d4aa50;border-left:4px solid var(--gold);border-radius:3px;padding:11px 15px;margin-bottom:16px;font-size:12.5px;line-height:1.6;color:#5a4410}
+</style>
+</head>
+<body>
+<div class="hdr">
+  <div>
+    <h1>Grupo <em>TIMO</em></h1>
+    <div class="hdr-sub">Dashboard Revisado - Jan/25 a Abr/26 - 3 Unidades - Dados Corrigidos</div>
+  </div>
+  <div class="hdr-kpis" id="hkpis"></div>
+</div>
+<div class="unit-bar">
+  <button class="ubtn active" data-u="Gruppo" id="ubtn-Gruppo" onclick="setUnit(this)">
+    <span class="dot" style="background:var(--gold)"></span>Grupo Consolidado
+  </button>
+  <button class="ubtn" data-u="Centrale" id="ubtn-Centrale" onclick="setUnit(this)">
+    <span class="dot" style="background:var(--c1)"></span>Timo Centrale
+  </button>
+  <button class="ubtn" data-u="El Carbon JK" id="ubtn-ElCarbon" onclick="setUnit(this)">
+    <span class="dot" style="background:var(--c2)"></span>El Carbon JK
+  </button>
+  <button class="ubtn" data-u="Timo JK" id="ubtn-TimoJK" onclick="setUnit(this)">
+    <span class="dot" style="background:var(--c3)"></span>Timo JK
+  </button>
+</div>
+<div class="tab-bar">
+  <button class="tbtn active" onclick="showTab(this, 'visao')">Visao Geral</button>
+  <button class="tbtn" onclick="showTab(this, 'dre')">DRE Mes a Mes</button>
+  <button class="tbtn" onclick="showTab(this, 'margens')">Margens e CMV</button>
+  <button class="tbtn" onclick="showTab(this, 'despesas')">Despesas</button>
+  <button class="tbtn" onclick="showTab(this, 'comp')">Comparativo</button>
+</div>
+<div id="tab-visao" class="tab-pane active"><div class="page" id="p-visao"></div></div>
+<div id="tab-dre" class="tab-pane"><div class="page" id="p-dre"></div></div>
+<div id="tab-margens" class="tab-pane"><div class="page" id="p-margens"></div></div>
+<div id="tab-despesas" class="tab-pane"><div class="page" id="p-despesas"></div></div>
+<div id="tab-comp" class="tab-pane"><div class="page" id="p-comp"></div></div>
+<script>
+var D = {"Centrale": [{"label": "Jan/25", "receita_bruta": 221701.76, "deducoes": -6957.16, "receita_liquida": 214744.6, "custos_total": -107376.32, "cmv": 0.0, "depreciacao": -152.91, "lucro_bruto": 107368.28, "despesas_operacionais": -268310.74, "pessoal": -137126.31, "adm": -131184.43, "aluguel": 0.0, "energia": 0.0, "agua": 0.0, "marketing": 0.0, "taxa_cartao": -6867.33, "juros": -514.26, "descontos": -9834.8, "tarifa": -2364.1, "resultado_operacional": -160942.43, "receita_nao_op": 0.0, "ir_csll": 0.0, "resultado_exercicio": -160942.43, "sort_key": 202501}, {"label": "Fev/25", "receita_bruta": 483441.73, "deducoes": -16834.52, "receita_liquida": 466607.21, "custos_total": -128040.92, "cmv": 0.0, "depreciacao": -152.91, "lucro_bruto": 338566.29, "despesas_operacionais": -316653.26, "pessoal": -187094.12, "adm": -129559.14, "aluguel": 0.0, "energia": 0.0, "agua": 0.0, "marketing": -500.0, "taxa_cartao": -12175.78, "juros": -981.39, "descontos": -26833.61, "tarifa": -8618.15, "resultado_operacional": 21913.06, "receita_nao_op": 0.0, "ir_csll": 0.0, "resultado_exercicio": 21913.06, "sort_key": 202502}, {"label": "Mar/25", "receita_bruta": 519370.23, "deducoes": -15111.82, "receita_liquida": 504258.41, "custos_total": -146993.26, "cmv": 0.0, "depreciacao": -152.91, "lucro_bruto": 357265.15, "despesas_operacionais": -351767.08, "pessoal": -204756.45, "adm": -147010.63, "aluguel": 0.0, "energia": 0.0, "agua": 0.0, "marketing": -2235.0, "taxa_cartao": -14967.45, "juros": -668.73, "descontos": -28032.06, "tarifa": -2405.76, "resultado_operacional": 5498.07, "receita_nao_op": 0.0, "ir_csll": 0.0, "resultado_exercicio": 5498.07, "sort_key": 202503}, {"label": "Abr/25", "receita_bruta": 591763.29, "deducoes": -48848.24, "receita_liquida": 542915.05, "custos_total": -154006.6, "cmv": 0.0, "depreciacao": -152.91, "lucro_bruto": 388908.45, "despesas_operacionais": -378415.5, "pessoal": -207098.25, "adm": -171317.25, "aluguel": 0.0, "energia": 0.0, "agua": 0.0, "marketing": -2469.92, "taxa_cartao": -18366.73, "juros": -276.2, "descontos": -32346.75, "tarifa": -2873.43, "resultado_operacional": 10492.95, "receita_nao_op": 0.0, "ir_csll": 0.0, "resultado_exercicio": 10492.95, "sort_key": 202504}, {"label": "Mai/25", "receita_bruta": 694174.68, "deducoes": -72286.31, "receita_liquida": 621888.37, "custos_total": -163732.98, "cmv": 0.0, "depreciacao": -366.79, "lucro_bruto": 458155.39, "despesas_operacionais": -386035.63, "pessoal": -233282.3, "adm": -152753.33, "aluguel": 0.0, "energia": 0.0, "agua": 0.0, "marketing": -858.88, "taxa_cartao": -18732.35, "juros": -564.86, "descontos": -32169.66, "tarifa": -2313.34, "resultado_operacional": 72119.79, "receita_nao_op": 16615.99, "ir_csll": 0.0, "resultado_exercicio": 88735.78, "sort_key": 202505}, {"label": "Jun/25", "receita_bruta": 631988.53, "deducoes": -65912.07, "receita_liquida": 566076.46, "custos_total": -194273.64, "cmv": 0.0, "depreciacao": -366.79, "lucro_bruto": 371802.82, "despesas_operacionais": -410394.98, "pessoal": -228854.15, "adm": -181540.83, "aluguel": 0.0, "energia": 0.0, "agua": 0.0, "marketing": -1169.38, "taxa_cartao": -17065.9, "juros": -1762.61, "descontos": -27740.87, "tarifa": -2176.27, "resultado_operacional": -38592.16, "receita_nao_op": 15749.47, "ir_csll": -7395.46, "resultado_exercicio": -30238.15, "sort_key": 202506}, {"label": "Jul/25", "receita_bruta": 504845.59, "deducoes": -54524.72, "receita_liquida": 450320.87, "custos_total": -121791.79, "cmv": 0.0, "depreciacao": -366.79, "lucro_bruto": 328529.08, "despesas_operacionais": -324354.41, "pessoal": -194225.18, "adm": -130129.23, "aluguel": 0.0, "energia": 0.0, "agua": 0.0, "marketing": -1270.0, "taxa_cartao": -15021.34, "juros": -1266.19, "descontos": -17533.8, "tarifa": -2569.5, "resultado_operacional": 4174.69, "receita_nao_op": 12179.99, "ir_csll": 0.0, "resultado_exercicio": 16354.68, "sort_key": 202507}, {"label": "Ago/25", "receita_bruta": 536463.69, "deducoes": -57766.66, "receita_liquida": 478697.03, "custos_total": -150698.1, "cmv": 0.0, "depreciacao": -366.79, "lucro_bruto": 327998.93, "despesas_operacionais": -377359.33, "pessoal": -241861.33, "adm": -135498.0, "aluguel": 0.0, "energia": 0.0, "agua": 0.0, "marketing": -230.0, "taxa_cartao": -15102.29, "juros": -2015.48, "descontos": -19366.22, "tarifa": -2443.22, "resultado_operacional": -49360.36, "receita_nao_op": 12948.62, "ir_csll": 0.0, "resultado_exercicio": -36411.74, "sort_key": 202508}, {"label": "Set/25", "receita_bruta": 561292.31, "deducoes": -59227.24, "receita_liquida": 502065.07, "custos_total": -141947.8, "cmv": 0.0, "depreciacao": -366.79, "lucro_bruto": 360117.27, "despesas_operacionais": -343709.97, "pessoal": -209640.02, "adm": -134069.95, "aluguel": 0.0, "energia": 0.0, "agua": 0.0, "marketing": -315.0, "taxa_cartao": -15394.74, "juros": -1845.58, "descontos": -25406.73, "tarifa": -1433.1, "resultado_operacional": 16407.31, "receita_nao_op": 13124.8, "ir_csll": 0.0, "resultado_exercicio": 29532.11, "sort_key": 202509}, {"label": "Out/25", "receita_bruta": 879991.22, "deducoes": -98192.04, "receita_liquida": 781799.18, "custos_total": -189028.37, "cmv": 0.0, "depreciacao": -366.79, "lucro_bruto": 592770.81, "despesas_operacionais": -408415.79, "pessoal": -259330.77, "adm": -149085.02, "aluguel": 0.0, "energia": 0.0, "agua": 0.0, "marketing": 0.0, "taxa_cartao": -21422.9, "juros": -1935.91, "descontos": -17959.92, "tarifa": -2178.35, "resultado_operacional": 184355.17, "receita_nao_op": 0.0, "ir_csll": 0.0, "resultado_exercicio": 184355.17, "sort_key": 202510}, {"label": "Nov/25", "receita_bruta": 715514.27, "deducoes": -75511.48, "receita_liquida": 640002.79, "custos_total": -170695.8, "cmv": 0.0, "depreciacao": -366.79, "lucro_bruto": 469306.99, "despesas_operacionais": -440743.72, "pessoal": -286282.53, "adm": -154461.19, "aluguel": 0.0, "energia": 0.0, "agua": 0.0, "marketing": -990.0, "taxa_cartao": -13412.89, "juros": 0.0, "descontos": -25933.61, "tarifa": -2896.21, "resultado_operacional": 28563.28, "receita_nao_op": 0.0, "ir_csll": 0.0, "resultado_exercicio": 28563.28, "sort_key": 202511}, {"label": "Dez/25", "receita_bruta": 720837.85, "deducoes": -86770.08, "receita_liquida": 634067.77, "custos_total": -113241.65, "cmv": 0.0, "depreciacao": -366.79, "lucro_bruto": 520826.12, "despesas_operacionais": -399775.52, "pessoal": -232416.8, "adm": -167358.72, "aluguel": 0.0, "energia": 0.0, "agua": 0.0, "marketing": -300.0, "taxa_cartao": -17164.32, "juros": -263.62, "descontos": -14578.08, "tarifa": -3592.51, "resultado_operacional": 121050.65, "receita_nao_op": 0.0, "ir_csll": -73484.65, "resultado_exercicio": 47566.0, "sort_key": 202512}, {"label": "Jan/26", "receita_bruta": 314257.86, "deducoes": -32636.77, "receita_liquida": 281621.09, "custos_total": -136801.83, "cmv": 0.0, "depreciacao": -366.79, "lucro_bruto": 144819.26, "despesas_operacionais": -280991.09, "pessoal": -159829.21, "adm": -121161.88, "aluguel": 0.0, "energia": 0.0, "agua": 0.0, "marketing": -330.0, "taxa_cartao": -8745.32, "juros": -9598.4, "descontos": -5991.72, "tarifa": -3348.44, "resultado_operacional": -136171.62, "receita_nao_op": 0.0, "ir_csll": 0.0, "resultado_exercicio": -136171.62, "sort_key": 202601}, {"label": "Fev/26", "receita_bruta": 451121.35, "deducoes": -46130.2, "receita_liquida": 404991.15, "custos_total": -131208.42, "cmv": 0.0, "depreciacao": -366.79, "lucro_bruto": 273782.73, "despesas_operacionais": -315107.81, "pessoal": -209884.43, "adm": -105223.38, "aluguel": 0.0, "energia": 0.0, "agua": 0.0, "marketing": -400.0, "taxa_cartao": -11825.01, "juros": 0.0, "descontos": -14387.46, "tarifa": -3213.85, "resultado_operacional": -41325.01, "receita_nao_op": 0.0, "ir_csll": 0.0, "resultado_exercicio": -41325.01, "sort_key": 202602}, {"label": "Mar/26", "receita_bruta": 682777.12, "deducoes": -69162.71, "receita_liquida": 613614.41, "custos_total": -185830.78, "cmv": 0.0, "depreciacao": -366.79, "lucro_bruto": 427783.63, "despesas_operacionais": -415326.61, "pessoal": -238810.07, "adm": -176516.54, "aluguel": 0.0, "energia": 0.0, "agua": 0.0, "marketing": -1300.0, "taxa_cartao": -19111.51, "juros": -21102.83, "descontos": -29162.55, "tarifa": -3770.15, "resultado_operacional": 12457.02, "receita_nao_op": 0.0, "ir_csll": 0.0, "resultado_exercicio": 12457.02, "sort_key": 202603}, {"label": "Abr/26", "receita_bruta": 530611.26, "deducoes": -55839.88, "receita_liquida": 474771.38, "custos_total": -122378.86, "cmv": 0.0, "depreciacao": -366.79, "lucro_bruto": 352392.52, "despesas_operacionais": -331482.22, "pessoal": -213672.8, "adm": -117809.42, "aluguel": 0.0, "energia": 0.0, "agua": 0.0, "marketing": 0.0, "taxa_cartao": -12930.67, "juros": -7367.24, "descontos": -14303.17, "tarifa": -3874.12, "resultado_operacional": 20910.31, "receita_nao_op": 0.0, "ir_csll": 0.0, "resultado_exercicio": 20910.31, "sort_key": 202604}], "El Carbon JK": [{"label": "Jan/25", "receita_bruta": 276992.55, "deducoes": -8218.95, "receita_liquida": 268773.6, "custos_total": -69240.41, "cmv": 0.0, "depreciacao": -141.92, "lucro_bruto": 199533.19, "despesas_operacionais": -214423.99, "pessoal": -73686.91, "adm": -140737.08, "aluguel": -13455.03, "energia": -15906.43, "agua": -11415.97, "marketing": -4056.39, "taxa_cartao": -6543.37, "juros": -4303.12, "descontos": -9900.77, "tarifa": -501.7, "resultado_operacional": -14757.98, "receita_nao_op": 132.73, "ir_csll": 0.0, "resultado_exercicio": -14757.98, "sort_key": 202501}, {"label": "Fev/25", "receita_bruta": 367548.74, "deducoes": -10918.58, "receita_liquida": 356630.16, "custos_total": -86854.78, "cmv": 0.0, "depreciacao": -141.92, "lucro_bruto": 269775.38, "despesas_operacionais": -245451.46, "pessoal": -107605.87, "adm": -137845.59, "aluguel": -13849.63, "energia": -9795.66, "agua": -19202.25, "marketing": -5931.52, "taxa_cartao": -9578.66, "juros": -1678.24, "descontos": -8342.83, "tarifa": -487.0, "resultado_operacional": 24323.94, "receita_nao_op": 0.0, "ir_csll": 0.0, "resultado_exercicio": 24323.94, "sort_key": 202502}, {"label": "Mar/25", "receita_bruta": 335525.31, "deducoes": -9658.17, "receita_liquida": 325867.14, "custos_total": -92699.22, "cmv": 0.0, "depreciacao": -141.92, "lucro_bruto": 233167.92, "despesas_operacionais": -236463.64, "pessoal": -100706.91, "adm": -135756.73, "aluguel": -18377.44, "energia": -24714.86, "agua": -433.09, "marketing": -4534.8, "taxa_cartao": -9934.96, "juros": -369.28, "descontos": -9375.34, "tarifa": -518.5, "resultado_operacional": -3295.72, "receita_nao_op": 0.0, "ir_csll": -1053.4099999999999, "resultado_exercicio": -4349.13, "sort_key": 202503}, {"label": "Abr/25", "receita_bruta": 368419.91, "deducoes": -10854.47, "receita_liquida": 357565.44, "custos_total": -70737.6, "cmv": 0.0, "depreciacao": -141.92, "lucro_bruto": 286827.84, "despesas_operacionais": -270240.28, "pessoal": -96054.22, "adm": -174186.06, "aluguel": -16454.15, "energia": -23018.28, "agua": -24860.52, "marketing": -2723.33, "taxa_cartao": -11588.59, "juros": -3334.61, "descontos": -6941.92, "tarifa": -499.6, "resultado_operacional": 16587.56, "receita_nao_op": 0.0, "ir_csll": 0.0, "resultado_exercicio": 16587.56, "sort_key": 202504}, {"label": "Mai/25", "receita_bruta": 385732.23, "deducoes": -10911.89, "receita_liquida": 374820.34, "custos_total": -70485.35, "cmv": 0.0, "depreciacao": -141.92, "lucro_bruto": 304334.99, "despesas_operacionais": -265808.53, "pessoal": -103550.79, "adm": -162257.74, "aluguel": -18420.95, "energia": -19775.81, "agua": -11046.5, "marketing": -4879.02, "taxa_cartao": -10589.21, "juros": -2429.8, "descontos": -11514.26, "tarifa": -531.7, "resultado_operacional": 38526.46, "receita_nao_op": 0.0, "ir_csll": 0.0, "resultado_exercicio": 38526.46, "sort_key": 202505}, {"label": "Jun/25", "receita_bruta": 291310.15, "deducoes": -8804.36, "receita_liquida": 282505.79, "custos_total": -102384.38, "cmv": 0.0, "depreciacao": -141.92, "lucro_bruto": 180121.41, "despesas_operacionais": -255009.08, "pessoal": -107678.41, "adm": -147330.67, "aluguel": -19273.62, "energia": -14137.38, "agua": -14156.02, "marketing": -4701.32, "taxa_cartao": -7337.78, "juros": -1850.46, "descontos": -10297.73, "tarifa": -517.0, "resultado_operacional": -69959.78, "receita_nao_op": 2930.28, "ir_csll": 0.0, "resultado_exercicio": -69959.78, "sort_key": 202506}, {"label": "Jul/25", "receita_bruta": 280095.6, "deducoes": -28689.34, "receita_liquida": 251406.26, "custos_total": -82205.23, "cmv": 0.0, "depreciacao": -141.92, "lucro_bruto": 169201.03, "despesas_operacionais": -257766.96, "pessoal": -105401.69, "adm": -152365.27, "aluguel": -13182.45, "energia": -18253.4, "agua": -16489.73, "marketing": -4657.62, "taxa_cartao": -8348.36, "juros": -1921.47, "descontos": -9281.08, "tarifa": -550.6, "resultado_operacional": -88432.43, "receita_nao_op": 4373.75, "ir_csll": 0.0, "resultado_exercicio": -84058.68, "sort_key": 202507}, {"label": "Ago/25", "receita_bruta": 335206.66, "deducoes": -34105.94, "receita_liquida": 301100.72, "custos_total": -122746.67, "cmv": 0.0, "depreciacao": -141.92, "lucro_bruto": 178354.05, "despesas_operacionais": -256115.72, "pessoal": -118850.47, "adm": -137265.25, "aluguel": -12421.4, "energia": -12118.02, "agua": -12693.3, "marketing": -4530.68, "taxa_cartao": -9501.84, "juros": -2435.56, "descontos": -9861.02, "tarifa": -519.1, "resultado_operacional": -77761.5, "receita_nao_op": 6108.48, "ir_csll": 0.0, "resultado_exercicio": -71653.02, "sort_key": 202508}, {"label": "Set/25", "receita_bruta": 372398.11, "deducoes": -38000.96, "receita_liquida": 334397.15, "custos_total": -123538.26, "cmv": 0.0, "depreciacao": -141.92, "lucro_bruto": 210858.89, "despesas_operacionais": -243821.76, "pessoal": -104992.29, "adm": -138829.47, "aluguel": -15210.0, "energia": -18792.25, "agua": -13615.21, "marketing": -6282.29, "taxa_cartao": -10508.99, "juros": -1962.21, "descontos": -6597.71, "tarifa": -533.8, "resultado_operacional": -32962.87, "receita_nao_op": 6485.02, "ir_csll": 0.0, "resultado_exercicio": -26477.85, "sort_key": 202509}, {"label": "Out/25", "receita_bruta": 362853.42, "deducoes": -37780.29, "receita_liquida": 325073.13, "custos_total": -82662.61, "cmv": 0.0, "depreciacao": -141.92, "lucro_bruto": 242410.52, "despesas_operacionais": -273381.46, "pessoal": -108547.3, "adm": -164834.16, "aluguel": -16897.57, "energia": -16436.56, "agua": -13149.91, "marketing": -6091.42, "taxa_cartao": -8853.95, "juros": -1663.06, "descontos": -6562.07, "tarifa": -550.6, "resultado_operacional": -30970.8, "receita_nao_op": 0.0, "ir_csll": 0.0, "resultado_exercicio": -30970.8, "sort_key": 202510}, {"label": "Nov/25", "receita_bruta": 394915.61, "deducoes": -40840.49, "receita_liquida": 354075.12, "custos_total": -87188.69, "cmv": 0.0, "depreciacao": -141.92, "lucro_bruto": 266886.43, "despesas_operacionais": -227722.51, "pessoal": -99533.19, "adm": -128189.32, "aluguel": -16795.83, "energia": -18148.0, "agua": -13252.79, "marketing": -5767.87, "taxa_cartao": -7541.85, "juros": -51.85, "descontos": -7178.47, "tarifa": -521.2, "resultado_operacional": 39589.83, "receita_nao_op": 425.89, "ir_csll": 0.0, "resultado_exercicio": 39589.83, "sort_key": 202511}, {"label": "Dez/25", "receita_bruta": 436266.8, "deducoes": -44287.25, "receita_liquida": 391979.55, "custos_total": -77733.04, "cmv": 0.0, "depreciacao": -500.25, "lucro_bruto": 314246.51, "despesas_operacionais": -226024.39, "pessoal": -93950.14, "adm": -132074.25, "aluguel": -15595.63, "energia": -22226.2, "agua": -17227.47, "marketing": -4288.16, "taxa_cartao": -10404.14, "juros": -57.74, "descontos": -8158.27, "tarifa": -621.4, "resultado_operacional": 88222.19, "receita_nao_op": 0.0, "ir_csll": -17048.22, "resultado_exercicio": 71173.97, "sort_key": 202512}, {"label": "Jan/26", "receita_bruta": 249840.34, "deducoes": -24994.99, "receita_liquida": 224845.35, "custos_total": -65560.21, "cmv": 0.0, "depreciacao": -500.25, "lucro_bruto": 159285.14, "despesas_operacionais": -211288.42, "pessoal": -91861.12, "adm": -119427.3, "aluguel": -19904.72, "energia": -13243.85, "agua": -10983.16, "marketing": -4005.44, "taxa_cartao": -6844.91, "juros": -1254.68, "descontos": -8608.8, "tarifa": -543.9, "resultado_operacional": -52003.22, "receita_nao_op": 0.0, "ir_csll": 0.0, "resultado_exercicio": -52003.22, "sort_key": 202601}, {"label": "Fev/26", "receita_bruta": 315419.47, "deducoes": -32127.94, "receita_liquida": 283291.53, "custos_total": -80005.04, "cmv": 0.0, "depreciacao": -500.25, "lucro_bruto": 203286.49, "despesas_operacionais": -230580.17, "pessoal": -103046.79, "adm": -127533.38, "aluguel": -11373.96, "energia": -19854.28, "agua": -14225.15, "marketing": -4584.56, "taxa_cartao": -8323.73, "juros": 0.0, "descontos": -8001.52, "tarifa": -562.8, "resultado_operacional": -27293.66, "receita_nao_op": 0.0, "ir_csll": 0.0, "resultado_exercicio": -27293.66, "sort_key": 202602}, {"label": "Mar/26", "receita_bruta": 444861.66, "deducoes": -44843.92, "receita_liquida": 400017.74, "custos_total": -116521.77, "cmv": 0.0, "depreciacao": -500.25, "lucro_bruto": 283495.97, "despesas_operacionais": -260911.46, "pessoal": -127309.91, "adm": -133601.55, "aluguel": -14379.79, "energia": -19294.88, "agua": -6282.38, "marketing": -3071.19, "taxa_cartao": -12552.63, "juros": -59.94, "descontos": -15559.19, "tarifa": -585.9, "resultado_operacional": 22584.51, "receita_nao_op": 0.0, "ir_csll": 0.0, "resultado_exercicio": 22584.51, "sort_key": 202603}, {"label": "Abr/26", "receita_bruta": 373586.56, "deducoes": -37398.68, "receita_liquida": 336187.88, "custos_total": -77334.33, "cmv": 0.0, "depreciacao": -500.25, "lucro_bruto": 258853.55, "despesas_operacionais": -277981.87, "pessoal": -119849.15, "adm": -158132.72, "aluguel": -20254.34, "energia": -28829.31, "agua": -15942.24, "marketing": -4994.58, "taxa_cartao": -9055.17, "juros": -69.0, "descontos": -12006.55, "tarifa": -550.4, "resultado_operacional": -19128.28, "receita_nao_op": 0.0, "ir_csll": 0.0, "resultado_exercicio": -19128.28, "sort_key": 202604}], "Timo JK": [{"label": "Jan/25", "receita_bruta": 730767.1, "deducoes": -22962.1, "receita_liquida": 707805.0, "custos_total": -245693.69, "cmv": 0.0, "depreciacao": -142.42, "lucro_bruto": 462111.31, "despesas_operacionais": -467751.78, "pessoal": -219687.14, "adm": -248064.64, "aluguel": -39126.4, "energia": 0.0, "agua": 0.0, "marketing": -363.1, "taxa_cartao": -17770.55, "juros": -2892.88, "descontos": -5396.56, "tarifa": -425.5, "resultado_operacional": -5149.7, "receita_nao_op": 490.63, "ir_csll": 0.0, "resultado_exercicio": -5149.7, "sort_key": 202501}, {"label": "Fev/25", "receita_bruta": 851549.65, "deducoes": -26876.98, "receita_liquida": 824672.67, "custos_total": -236589.06, "cmv": 0.0, "depreciacao": -142.42, "lucro_bruto": 588083.61, "despesas_operacionais": -511098.25, "pessoal": -286941.33, "adm": -224156.92, "aluguel": -42692.43, "energia": 0.0, "agua": 0.0, "marketing": -5361.79, "taxa_cartao": -22613.85, "juros": -2886.14, "descontos": -3514.25, "tarifa": -419.66, "resultado_operacional": 77011.27, "receita_nao_op": 25.91, "ir_csll": 0.0, "resultado_exercicio": 77011.27, "sort_key": 202502}, {"label": "Mar/25", "receita_bruta": 760137.35, "deducoes": -23616.09, "receita_liquida": 736521.26, "custos_total": -261503.67, "cmv": 0.0, "depreciacao": -142.42, "lucro_bruto": 475017.59, "despesas_operacionais": -514570.4, "pessoal": -286417.16, "adm": -228153.24, "aluguel": -48581.11, "energia": 0.0, "agua": 0.0, "marketing": -10.0, "taxa_cartao": -23039.29, "juros": -1264.28, "descontos": -3838.1, "tarifa": -556.45, "resultado_operacional": -39552.79, "receita_nao_op": 0.0, "ir_csll": -5427.87, "resultado_exercicio": -44980.66, "sort_key": 202503}, {"label": "Abr/25", "receita_bruta": 876477.86, "deducoes": -30044.82, "receita_liquida": 846433.04, "custos_total": -242414.58, "cmv": 0.0, "depreciacao": -142.42, "lucro_bruto": 604018.46, "despesas_operacionais": -494247.57, "pessoal": -284803.13, "adm": -209444.44, "aluguel": -34665.33, "energia": 0.0, "agua": 0.0, "marketing": 0.0, "taxa_cartao": -27989.17, "juros": -3711.42, "descontos": -3438.32, "tarifa": -532.06, "resultado_operacional": 109770.9, "receita_nao_op": 0.0, "ir_csll": 0.0, "resultado_exercicio": 109770.9, "sort_key": 202504}, {"label": "Mai/25", "receita_bruta": 861022.02, "deducoes": -26523.66, "receita_liquida": 834498.36, "custos_total": -307439.15, "cmv": 0.0, "depreciacao": -142.42, "lucro_bruto": 527059.21, "despesas_operacionais": -521379.31, "pessoal": -292417.68, "adm": -228961.63, "aluguel": -40497.46, "energia": 0.0, "agua": 0.0, "marketing": -275.0, "taxa_cartao": -24241.86, "juros": -3122.57, "descontos": -4327.07, "tarifa": -424.75, "resultado_operacional": 5828.27, "receita_nao_op": 148.32, "ir_csll": 0.0, "resultado_exercicio": 5828.27, "sort_key": 202505}, {"label": "Jun/25", "receita_bruta": 783093.1, "deducoes": -24621.34, "receita_liquida": 758471.76, "custos_total": -187022.26, "cmv": 0.0, "depreciacao": -142.42, "lucro_bruto": 571449.5, "despesas_operacionais": -505831.01, "pessoal": -287228.69, "adm": -218602.32, "aluguel": -33259.27, "energia": 0.0, "agua": 0.0, "marketing": -30.0, "taxa_cartao": -20277.13, "juros": -3380.17, "descontos": -6525.07, "tarifa": -378.6, "resultado_operacional": 65618.53, "receita_nao_op": 0.0, "ir_csll": 0.0, "resultado_exercicio": 65618.53, "sort_key": 202506}, {"label": "Jul/25", "receita_bruta": 861444.34, "deducoes": -91444.12, "receita_liquida": 770000.22, "custos_total": -180825.84, "cmv": 0.0, "depreciacao": -142.42, "lucro_bruto": 589174.38, "despesas_operacionais": -467579.9, "pessoal": -246230.43, "adm": -221349.47, "aluguel": -35462.88, "energia": 0.0, "agua": 0.0, "marketing": -1101.31, "taxa_cartao": -26273.96, "juros": -4355.14, "descontos": -9096.37, "tarifa": -628.1, "resultado_operacional": 121594.62, "receita_nao_op": 19624.7, "ir_csll": 0.0, "resultado_exercicio": 141219.32, "sort_key": 202507}, {"label": "Ago/25", "receita_bruta": 839822.03, "deducoes": -89952.2, "receita_liquida": 749869.83, "custos_total": -254396.5, "cmv": 0.0, "depreciacao": -142.42, "lucro_bruto": 495473.33, "despesas_operacionais": -513344.88, "pessoal": -289357.86, "adm": -223987.02, "aluguel": -39039.67, "energia": 0.0, "agua": 0.0, "marketing": -3065.3, "taxa_cartao": -24276.78, "juros": -3198.56, "descontos": -8585.99, "tarifa": -645.2, "resultado_operacional": -17871.39, "receita_nao_op": 19335.33, "ir_csll": 0.0, "resultado_exercicio": 1463.94, "sort_key": 202508}, {"label": "Set/25", "receita_bruta": 925091.68, "deducoes": -97790.19, "receita_liquida": 827301.49, "custos_total": -293337.84, "cmv": 0.0, "depreciacao": -142.42, "lucro_bruto": 533963.65, "despesas_operacionais": -516403.14, "pessoal": -304676.34, "adm": -211726.8, "aluguel": -38081.52, "energia": 0.0, "agua": 0.0, "marketing": -50.0, "taxa_cartao": -26337.57, "juros": -1799.57, "descontos": -8301.23, "tarifa": -726.69, "resultado_operacional": 17560.51, "receita_nao_op": 21633.18, "ir_csll": -22865.53, "resultado_exercicio": 16328.16, "sort_key": 202509}, {"label": "Out/25", "receita_bruta": 939183.82, "deducoes": -100946.21, "receita_liquida": 838237.61, "custos_total": -228854.73, "cmv": 0.0, "depreciacao": -142.42, "lucro_bruto": 609382.88, "despesas_operacionais": -540610.47, "pessoal": -299982.03, "adm": -240628.44, "aluguel": -41935.26, "energia": 0.0, "agua": 0.0, "marketing": -339.97, "taxa_cartao": -23215.83, "juros": -6410.83, "descontos": -4991.65, "tarifa": -742.3, "resultado_operacional": 68772.49, "receita_nao_op": 0.0, "ir_csll": 0.0, "resultado_exercicio": 68772.49, "sort_key": 202510}, {"label": "Nov/25", "receita_bruta": 862178.53, "deducoes": -97355.65, "receita_liquida": 764822.88, "custos_total": -207889.57, "cmv": 0.0, "depreciacao": -142.42, "lucro_bruto": 556933.31, "despesas_operacionais": -502232.3, "pessoal": -296318.57, "adm": -205913.73, "aluguel": -42852.34, "energia": 0.0, "agua": 0.0, "marketing": -1865.0, "taxa_cartao": -16605.36, "juros": -561.24, "descontos": -8469.1, "tarifa": -552.77, "resultado_operacional": 54701.02, "receita_nao_op": 0.0, "ir_csll": 0.0, "resultado_exercicio": 54701.02, "sort_key": 202511}, {"label": "Dez/25", "receita_bruta": 852532.59, "deducoes": -223962.57, "receita_liquida": 628570.02, "custos_total": -205280.11, "cmv": 0.0, "depreciacao": -142.42, "lucro_bruto": 423289.91, "despesas_operacionais": -511931.2, "pessoal": -261236.33, "adm": -250694.87, "aluguel": -32265.16, "energia": 0.0, "agua": 0.0, "marketing": -629.97, "taxa_cartao": -20550.98, "juros": -577.15, "descontos": -6933.4, "tarifa": -900.74, "resultado_operacional": -88641.26, "receita_nao_op": 0.0, "ir_csll": -5851.82, "resultado_exercicio": -94493.08, "sort_key": 202512}, {"label": "Jan/26", "receita_bruta": 692215.1, "deducoes": -74517.85, "receita_liquida": 617697.25, "custos_total": -225282.51, "cmv": 0.0, "depreciacao": -142.42, "lucro_bruto": 392414.74, "despesas_operacionais": -495990.65, "pessoal": -256141.37, "adm": -239849.28, "aluguel": -38583.29, "energia": 0.0, "agua": 0.0, "marketing": -700.0, "taxa_cartao": -19405.57, "juros": -708.74, "descontos": -8173.36, "tarifa": -583.16, "resultado_operacional": -103575.86, "receita_nao_op": 0.0, "ir_csll": 0.0, "resultado_exercicio": -103575.86, "sort_key": 202601}, {"label": "Fev/26", "receita_bruta": 676764.16, "deducoes": -72633.02, "receita_liquida": 604131.14, "custos_total": -197318.23, "cmv": 0.0, "depreciacao": -142.42, "lucro_bruto": 406812.91, "despesas_operacionais": -467341.07, "pessoal": -272245.61, "adm": -195095.46, "aluguel": -31380.77, "energia": 0.0, "agua": 0.0, "marketing": -930.0, "taxa_cartao": -18107.55, "juros": -2968.21, "descontos": -7991.82, "tarifa": -603.1, "resultado_operacional": -60528.15, "receita_nao_op": 0.0, "ir_csll": 0.0, "resultado_exercicio": -60528.15, "sort_key": 202602}, {"label": "Mar/26", "receita_bruta": 1005010.63, "deducoes": -108941.89, "receita_liquida": 896068.74, "custos_total": -319294.36, "cmv": 0.0, "depreciacao": -142.42, "lucro_bruto": 576774.38, "despesas_operacionais": -530890.84, "pessoal": -302417.46, "adm": -228473.38, "aluguel": -30727.56, "energia": 0.0, "agua": 0.0, "marketing": -4980.0, "taxa_cartao": -29122.75, "juros": -3290.78, "descontos": -9016.7, "tarifa": -719.46, "resultado_operacional": 45883.59, "receita_nao_op": 0.0, "ir_csll": 0.0, "resultado_exercicio": 45883.59, "sort_key": 202603}, {"label": "Abr/26", "receita_bruta": 805645.42, "deducoes": -86540.37, "receita_liquida": 719105.05, "custos_total": -248792.37, "cmv": 0.0, "depreciacao": -142.42, "lucro_bruto": 470312.68, "despesas_operacionais": -512772.08, "pessoal": -290902.58, "adm": -221869.5, "aluguel": -45615.02, "energia": 0.0, "agua": 0.0, "marketing": -2070.0, "taxa_cartao": -19930.25, "juros": -144.13, "descontos": -9852.58, "tarifa": -760.73, "resultado_operacional": -42459.28, "receita_nao_op": 0.0, "ir_csll": 0.0, "resultado_exercicio": -42459.28, "sort_key": 202604}], "Gruppo": [{"label": "Jan/25", "sort_key": 202501, "receita_bruta": 1229461.41, "deducoes": -38138.21, "receita_liquida": 1191323.2, "custos_total": -422310.42000000004, "cmv": 0.0, "depreciacao": -437.25, "lucro_bruto": 769012.78, "despesas_operacionais": -950486.51, "pessoal": -430500.36, "adm": -519986.15, "aluguel": -52581.43, "energia": -15906.43, "agua": -11415.97, "marketing": -4419.49, "taxa_cartao": -31181.25, "juros": -7710.26, "descontos": -25132.13, "tarifa": -3291.2999999999997, "resultado_operacional": -180850.11, "receita_nao_op": 623.36, "ir_csll": 0.0, "resultado_exercicio": -180850.11}, {"label": "Fev/25", "sort_key": 202502, "receita_bruta": 1702540.12, "deducoes": -54630.08, "receita_liquida": 1647910.04, "custos_total": -451484.76, "cmv": 0.0, "depreciacao": -437.25, "lucro_bruto": 1196425.28, "despesas_operacionais": -1073202.97, "pessoal": -581641.3200000001, "adm": -491561.65, "aluguel": -56542.06, "energia": -9795.66, "agua": -19202.25, "marketing": -11793.310000000001, "taxa_cartao": -44368.29, "juros": -5545.7699999999995, "descontos": -38690.69, "tarifa": -9524.81, "resultado_operacional": 123248.27, "receita_nao_op": 25.91, "ir_csll": 0.0, "resultado_exercicio": 123248.27}, {"label": "Mar/25", "sort_key": 202503, "receita_bruta": 1615032.89, "deducoes": -48386.08, "receita_liquida": 1566646.81, "custos_total": -501196.15, "cmv": 0.0, "depreciacao": -437.25, "lucro_bruto": 1065450.6600000001, "despesas_operacionais": -1102801.12, "pessoal": -591880.52, "adm": -510920.6, "aluguel": -66958.55, "energia": -24714.86, "agua": -433.09, "marketing": -6779.8, "taxa_cartao": -47941.7, "juros": -2302.29, "descontos": -41245.5, "tarifa": -3480.71, "resultado_operacional": -37350.44, "receita_nao_op": 0.0, "ir_csll": -6481.28, "resultado_exercicio": -43831.72}, {"label": "Abr/25", "sort_key": 202504, "receita_bruta": 1836661.06, "deducoes": -89747.53, "receita_liquida": 1746913.53, "custos_total": -467158.78, "cmv": 0.0, "depreciacao": -437.25, "lucro_bruto": 1279754.75, "despesas_operacionais": -1142903.35, "pessoal": -587955.6, "adm": -554947.75, "aluguel": -51119.48, "energia": -23018.28, "agua": -24860.52, "marketing": -5193.25, "taxa_cartao": -57944.49, "juros": -7322.2300000000005, "descontos": -42726.99, "tarifa": -3905.0899999999997, "resultado_operacional": 136851.41, "receita_nao_op": 0.0, "ir_csll": 0.0, "resultado_exercicio": 136851.41}, {"label": "Mai/25", "sort_key": 202505, "receita_bruta": 1940928.9300000002, "deducoes": -109721.86, "receita_liquida": 1831207.07, "custos_total": -541657.48, "cmv": 0.0, "depreciacao": -651.13, "lucro_bruto": 1289549.5899999999, "despesas_operacionais": -1173223.47, "pessoal": -629250.77, "adm": -543972.7, "aluguel": -58918.41, "energia": -19775.81, "agua": -11046.5, "marketing": -6012.900000000001, "taxa_cartao": -53563.42, "juros": -6117.2300000000005, "descontos": -48010.99, "tarifa": -3269.79, "resultado_operacional": 116474.51999999999, "receita_nao_op": 16764.31, "ir_csll": 0.0, "resultado_exercicio": 133090.51}, {"label": "Jun/25", "sort_key": 202506, "receita_bruta": 1706391.78, "deducoes": -99337.77, "receita_liquida": 1607054.01, "custos_total": -483680.28, "cmv": 0.0, "depreciacao": -651.13, "lucro_bruto": 1123373.73, "despesas_operacionais": -1171235.07, "pessoal": -623761.25, "adm": -547473.8200000001, "aluguel": -52532.89, "energia": -14137.38, "agua": -14156.02, "marketing": -5900.7, "taxa_cartao": -44680.810000000005, "juros": -6993.24, "descontos": -44563.67, "tarifa": -3071.87, "resultado_operacional": -42933.41, "receita_nao_op": 18679.75, "ir_csll": -7395.46, "resultado_exercicio": -34579.4}, {"label": "Jul/25", "sort_key": 202507, "receita_bruta": 1646385.53, "deducoes": -174658.18, "receita_liquida": 1471727.35, "custos_total": -384822.86, "cmv": 0.0, "depreciacao": -651.13, "lucro_bruto": 1086904.49, "despesas_operacionais": -1049701.27, "pessoal": -545857.3, "adm": -503843.97, "aluguel": -48645.33, "energia": -18253.4, "agua": -16489.73, "marketing": -7028.93, "taxa_cartao": -49643.66, "juros": -7542.8, "descontos": -35911.25, "tarifa": -3748.2, "resultado_operacional": 37336.880000000005, "receita_nao_op": 36178.44, "ir_csll": 0.0, "resultado_exercicio": 73515.32}, {"label": "Ago/25", "sort_key": 202508, "receita_bruta": 1711492.38, "deducoes": -181824.8, "receita_liquida": 1529667.58, "custos_total": -527841.27, "cmv": 0.0, "depreciacao": -651.13, "lucro_bruto": 1001826.31, "despesas_operacionais": -1146819.93, "pessoal": -650069.6599999999, "adm": -496750.27, "aluguel": -51461.07, "energia": -12118.02, "agua": -12693.3, "marketing": -7825.9800000000005, "taxa_cartao": -48880.91, "juros": -7649.6, "descontos": -37813.23, "tarifa": -3607.52, "resultado_operacional": -144993.25, "receita_nao_op": 38392.43, "ir_csll": 0.0, "resultado_exercicio": -106600.82}, {"label": "Set/25", "sort_key": 202509, "receita_bruta": 1858782.1, "deducoes": -195018.39, "receita_liquida": 1663763.71, "custos_total": -558823.9, "cmv": 0.0, "depreciacao": -651.13, "lucro_bruto": 1104939.81, "despesas_operacionais": -1103934.87, "pessoal": -619308.65, "adm": -484626.22, "aluguel": -53291.52, "energia": -18792.25, "agua": -13615.21, "marketing": -6647.29, "taxa_cartao": -52241.3, "juros": -5607.36, "descontos": -40305.67, "tarifa": -2693.59, "resultado_operacional": 1004.9499999999971, "receita_nao_op": 41243.0, "ir_csll": -22865.53, "resultado_exercicio": 19382.420000000002}, {"label": "Out/25", "sort_key": 202510, "receita_bruta": 2182028.46, "deducoes": -236918.54, "receita_liquida": 1945109.92, "custos_total": -500545.71, "cmv": 0.0, "depreciacao": -651.13, "lucro_bruto": 1444564.21, "despesas_operacionais": -1222407.72, "pessoal": -667860.1, "adm": -554547.62, "aluguel": -58832.83, "energia": -16436.56, "agua": -13149.91, "marketing": -6431.39, "taxa_cartao": -53492.68000000001, "juros": -10009.8, "descontos": -29513.64, "tarifa": -3471.25, "resultado_operacional": 222156.86000000002, "receita_nao_op": 0.0, "ir_csll": 0.0, "resultado_exercicio": 222156.86000000002}, {"label": "Nov/25", "sort_key": 202511, "receita_bruta": 1972608.4100000001, "deducoes": -213707.62, "receita_liquida": 1758900.79, "custos_total": -465774.06, "cmv": 0.0, "depreciacao": -651.13, "lucro_bruto": 1293126.73, "despesas_operacionais": -1170698.53, "pessoal": -682134.29, "adm": -488564.24, "aluguel": -59648.17, "energia": -18148.0, "agua": -13252.79, "marketing": -8622.869999999999, "taxa_cartao": -37560.1, "juros": -613.09, "descontos": -41581.18, "tarifa": -3970.1800000000003, "resultado_operacional": 122854.13, "receita_nao_op": 425.89, "ir_csll": 0.0, "resultado_exercicio": 122854.13}, {"label": "Dez/25", "sort_key": 202512, "receita_bruta": 2009637.24, "deducoes": -355019.9, "receita_liquida": 1654617.34, "custos_total": -396254.8, "cmv": 0.0, "depreciacao": -1009.46, "lucro_bruto": 1258362.54, "despesas_operacionais": -1137731.11, "pessoal": -587603.27, "adm": -550127.84, "aluguel": -47860.79, "energia": -22226.2, "agua": -17227.47, "marketing": -5218.13, "taxa_cartao": -48119.44, "juros": -898.51, "descontos": -29669.75, "tarifa": -5114.650000000001, "resultado_operacional": 120631.58, "receita_nao_op": 0.0, "ir_csll": -96384.69, "resultado_exercicio": 24246.89}, {"label": "Jan/26", "sort_key": 202601, "receita_bruta": 1256313.3, "deducoes": -132149.61000000002, "receita_liquida": 1124163.69, "custos_total": -427644.55, "cmv": 0.0, "depreciacao": -1009.46, "lucro_bruto": 696519.14, "despesas_operacionais": -988270.16, "pessoal": -507831.69999999995, "adm": -480438.46, "aluguel": -58488.01, "energia": -13243.85, "agua": -10983.16, "marketing": -5035.4400000000005, "taxa_cartao": -34995.8, "juros": -11561.82, "descontos": -22773.879999999997, "tarifa": -4475.5, "resultado_operacional": -291750.7, "receita_nao_op": 0.0, "ir_csll": 0.0, "resultado_exercicio": -291750.7}, {"label": "Fev/26", "sort_key": 202602, "receita_bruta": 1443304.98, "deducoes": -150891.16, "receita_liquida": 1292413.82, "custos_total": -408531.69, "cmv": 0.0, "depreciacao": -1009.46, "lucro_bruto": 883882.1299999999, "despesas_operacionais": -1013029.05, "pessoal": -585176.83, "adm": -427852.22, "aluguel": -42754.729999999996, "energia": -19854.28, "agua": -14225.15, "marketing": -5914.56, "taxa_cartao": -38256.29, "juros": -2968.21, "descontos": -30380.8, "tarifa": -4379.75, "resultado_operacional": -129146.82, "receita_nao_op": 0.0, "ir_csll": 0.0, "resultado_exercicio": -129146.82}, {"label": "Mar/26", "sort_key": 202603, "receita_bruta": 2132649.41, "deducoes": -222948.52000000002, "receita_liquida": 1909700.8900000001, "custos_total": -621646.91, "cmv": 0.0, "depreciacao": -1009.46, "lucro_bruto": 1288053.98, "despesas_operacionais": -1207128.91, "pessoal": -668537.4400000001, "adm": -538591.47, "aluguel": -45107.350000000006, "energia": -19294.88, "agua": -6282.38, "marketing": -9351.19, "taxa_cartao": -60786.89, "juros": -24453.550000000003, "descontos": -53738.44, "tarifa": -5075.51, "resultado_operacional": 80925.12, "receita_nao_op": 0.0, "ir_csll": 0.0, "resultado_exercicio": 80925.12}, {"label": "Abr/26", "sort_key": 202604, "receita_bruta": 1709843.24, "deducoes": -179778.93, "receita_liquida": 1530064.31, "custos_total": -448505.56, "cmv": 0.0, "depreciacao": -1009.46, "lucro_bruto": 1081558.75, "despesas_operacionais": -1122236.17, "pessoal": -624424.53, "adm": -497811.64, "aluguel": -65869.36, "energia": -28829.31, "agua": -15942.24, "marketing": -7064.58, "taxa_cartao": -41916.09, "juros": -7580.37, "descontos": -36162.3, "tarifa": -5185.25, "resultado_operacional": -40677.25, "receita_nao_op": 0.0, "ir_csll": 0.0, "resultado_exercicio": -40677.25}]};
+
+var curUnit = "Gruppo";
+var curMode = "val";
+
+function fmtK(v) {
+  var a = Math.abs(v);
+  if (a >= 1000000) return "R$ " + (v/1000000).toFixed(1).replace(".",",") + "M";
+  if (a >= 1000) return "R$ " + Math.round(v/1000) + "K";
+  return "R$ " + Math.round(v);
+}
+function fmtF(v) {
+  if (v === 0) return "-";
+  if (!v) return "-";
+  return "R$ " + Math.round(Math.abs(v)).toLocaleString("pt-BR");
+}
+function fmtP(v) { return v ? (v*100).toFixed(1) + "%" : "-"; }
+function vc(v) { return v > 0 ? "pos" : v < 0 ? "neg" : "mu"; }
+function tot(arr, k) {
+  var s = 0;
+  for (var i = 0; i < arr.length; i++) s += arr[i][k] || 0;
+  return s;
+}
+function getData() { return D[curUnit] || []; }
+function find(arr, lbl) {
+  for (var i = 0; i < arr.length; i++) if (arr[i].label === lbl) return arr[i];
+  return null;
+}
+
+function setUnit(btn) {
+  curUnit = btn.getAttribute("data-u");
+  var btns = document.querySelectorAll(".ubtn");
+  for (var i = 0; i < btns.length; i++) btns[i].classList.remove("active");
+  btn.classList.add("active");
+  buildAll();
+}
+
+function showTab(btn, id) {
+  var panes = document.querySelectorAll(".tab-pane");
+  for (var i = 0; i < panes.length; i++) panes[i].classList.remove("active");
+  var tbtns = document.querySelectorAll(".tbtn");
+  for (var i = 0; i < tbtns.length; i++) tbtns[i].classList.remove("active");
+  document.getElementById("tab-" + id).classList.add("active");
+  btn.classList.add("active");
+}
+
+function setMode(m) {
+  curMode = m;
+  document.getElementById("bval").className = "mbtn" + (m === "val" ? " active" : "");
+  document.getElementById("bpct").className = "mbtn" + (m === "pct" ? " active" : "");
+  buildDRE();
+}
+
+function buildHdr() {
+  var g = D["Gruppo"];
+  var tRL = tot(g, "receita_liquida"), tLB = tot(g, "lucro_bruto"), tRE = tot(g, "resultado_exercicio");
+  var pos = 0;
+  for (var i = 0; i < g.length; i++) if (g[i].resultado_exercicio > 0) pos++;
+  var el = document.getElementById("hkpis");
+  el.innerHTML = "";
+  var kpis = [
+    {l:"Rec. Liq. Grupo", v:fmtK(tRL), c:""},
+    {l:"Margem Bruta", v:fmtP(tRL ? tLB/tRL : 0), c:"pos"},
+    {l:"Resultado Exercicio", v:fmtK(tRE), c:tRE>=0?"pos":"neg"},
+    {l:"Meses Positivos", v:pos+"/"+g.length, c:"gold"}
+  ];
+  for (var i = 0; i < kpis.length; i++) {
+    var d = document.createElement("div");
+    d.className = "hkpi " + kpis[i].c;
+    d.innerHTML = "<label>" + kpis[i].l + "</label><strong>" + kpis[i].v + "</strong>";
+    el.appendChild(d);
+  }
+}
+
+function addChart(parent, title, data, valFn, clsFn) {
+  var box = document.createElement("div"); box.className = "chart-box";
+  var h4 = document.createElement("h4"); h4.textContent = title; box.appendChild(h4);
+  var bDiv = document.createElement("div"); bDiv.className = "mini-bars"; box.appendChild(bDiv);
+  var lDiv = document.createElement("div"); lDiv.className = "chart-lbls"; box.appendChild(lDiv);
+  var vals = [];
+  for (var i = 0; i < data.length; i++) vals.push(valFn(data[i]));
+  var max = 0;
+  for (var i = 0; i < vals.length; i++) if (Math.abs(vals[i]) > max) max = Math.abs(vals[i]);
+  if (!max) max = 1;
+  for (var i = 0; i < vals.length; i++) {
+    var el = document.createElement("div");
+    el.className = "mb " + clsFn(vals[i]);
+    el.style.height = Math.max(3, Math.abs(vals[i])/max*60) + "px";
+    el.title = data[i].label + ": " + fmtF(vals[i]);
+    bDiv.appendChild(el);
+    var s = document.createElement("span"); s.textContent = data[i].label; lDiv.appendChild(s);
+  }
+  parent.appendChild(box);
+}
+
+function buildKPIs(el, items) {
+  var g = document.createElement("div"); g.className = "kpi-grid";
+  for (var i = 0; i < items.length; i++) {
+    var c = document.createElement("div"); c.className = "kpi-c";
+    c.innerHTML = '<span class="kl">'+items[i].l+'</span><span class="kv '+(items[i].c||'')+'">'+items[i].v+'</span><div class="ks">'+(items[i].s||"")+"</div>";
+    g.appendChild(c);
+  }
+  el.appendChild(g);
+}
+
+function buildTable(el, data, rows, getV, fmtV) {
+  var wrap = document.createElement("div"); wrap.className = "tw";
+  var tbl = document.createElement("table"); tbl.className = "dt";
+  var thead = document.createElement("thead");
+  var tr0 = document.createElement("tr");
+  var th0 = document.createElement("th"); th0.textContent = "Linha DRE"; tr0.appendChild(th0);
+  for (var i = 0; i < data.length; i++) {
+    var th = document.createElement("th"); th.textContent = data[i].label; tr0.appendChild(th);
+  }
+  var thT = document.createElement("th"); thT.textContent = "TOTAL"; thT.className = "ct"; tr0.appendChild(thT);
+  thead.appendChild(tr0); tbl.appendChild(thead);
+  var tbody = document.createElement("tbody");
+  for (var ri = 0; ri < rows.length; ri++) {
+    var r = rows[ri];
+    var tr = document.createElement("tr");
+    if (r.type === "sec") {
+      tr.className = "sec";
+      var td = document.createElement("td"); td.textContent = r.label; td.colSpan = data.length + 2;
+      tr.appendChild(td); tbody.appendChild(tr); continue;
+    }
+    tr.className = r.type || "";
+    var tdL = document.createElement("td"); tdL.textContent = r.label; tr.appendChild(tdL);
+    var sm = 0;
+    for (var mi = 0; mi < data.length; mi++) {
+      var v = getV(data[mi], r.k);
+      sm += v;
+      var td = document.createElement("td");
+      td.textContent = fmtV(v, r.k, data[mi]);
+      td.className = vc(v);
+      tr.appendChild(td);
+    }
+    var tdT = document.createElement("td"); tdT.className = "ct " + vc(sm);
+    tdT.textContent = fmtV(sm, r.k, null);
+    tr.appendChild(tdT); tbody.appendChild(tr);
+  }
+  tbl.appendChild(tbody); wrap.appendChild(tbl); el.appendChild(wrap);
+}
+
+var DRE_ROWS = [
+  {k:"_r", label:"RECEITA", type:"sec"},
+  {k:"receita_bruta", label:"Receita Bruta", type:"sub"},
+  {k:"deducoes", label:"(-) Deducoes / ICMS", type:"ind"},
+  {k:"receita_liquida", label:"Receita Liquida", type:"sub"},
+  {k:"_c", label:"CUSTOS", type:"sec"},
+  {k:"custos_total", label:"(-) CMV + Depreciacao", type:"ind"},
+  {k:"lucro_bruto", label:"Lucro Bruto", type:"sub"},
+  {k:"_d", label:"DESPESAS OPERACIONAIS", type:"sec"},
+  {k:"pessoal", label:"(-) Pessoal", type:"ind"},
+  {k:"adm", label:"(-) Administrativas", type:"ind"},
+  {k:"resultado_operacional", label:"Resultado Operacional", type:"sub"},
+  {k:"_n", label:"ABAIXO DA LINHA OPERACIONAL", type:"sec"},
+  {k:"receita_nao_op", label:"(+) Rec. Nao Operacionais", type:"ind"},
+  {k:"ir_csll", label:"(-) IR e CSLL", type:"ind"},
+  {k:"resultado_exercicio", label:"Resultado do Exercicio", type:"tot"}
+];
+
+function buildVisao() {
+  var el = document.getElementById("p-visao"); el.innerHTML = "";
+  var d = getData();
+  var tRL = tot(d,"receita_liquida"), tLB = tot(d,"lucro_bruto");
+  var tRO = tot(d,"resultado_operacional"), tRE = tot(d,"resultado_exercicio");
+  var tPes = tot(d,"pessoal"), tAdm = tot(d,"adm");
+  var tNop = tot(d,"receita_nao_op"), tIR = tot(d,"ir_csll");
+  var pos = 0;
+  for (var i = 0; i < d.length; i++) if (d[i].resultado_exercicio > 0) pos++;
+  var best = d[0] || {}, worst = d[0] || {};
+  for (var i = 0; i < d.length; i++) {
+    if (d[i].resultado_exercicio > best.resultado_exercicio) best = d[i];
+    if (d[i].resultado_exercicio < worst.resultado_exercicio) worst = d[i];
+  }
+  if (curUnit !== "Gruppo") {
+    var note = document.createElement("div"); note.className = "note";
+    note.innerHTML = "<b>Composicao do Resultado do Exercicio:</b> Resultado Operacional <b>" +
+      fmtK(tRO) + "</b> + Rec. Nao Operacionais <b>" + fmtK(tNop) +
+      "</b> + IR/CSLL <b>" + fmtK(tIR) + "</b> = <b>" + fmtK(tRE) + "</b>";
+    el.appendChild(note);
+  }
+  buildKPIs(el, [
+    {l:"Receita Liq. Total", v:fmtK(tRL), c:"blue", s:"Periodo completo"},
+    {l:"Margem Bruta Media", v:fmtP(tRL?tLB/tRL:0), c:"pos", s:"% Receita Liquida"},
+    {l:"Res. Operacional", v:fmtK(tRO), c:tRO>=0?"pos":"neg", s:fmtP(tRL?tRO/tRL:0)+" da rec."},
+    {l:"Resultado Exercicio", v:fmtK(tRE), c:tRE>=0?"pos":"neg", s:"Apos IR e nao-op."},
+    {l:"Meses Positivos", v:pos+"/"+d.length, c:"gold", s:"Resultado exercicio"},
+    {l:"Pessoal / Rec.", v:fmtP(tRL?tPes/tRL:0), c:"neg", s:fmtK(tPes)+" acum."},
+    {l:"Adm / Rec.", v:fmtP(tRL?tAdm/tRL:0), c:"neg", s:fmtK(tAdm)+" acum."},
+    {l:"Melhor Mes", v:best.label||"-", c:"pos", s:fmtK(best.resultado_exercicio||0)}
+  ]);
+  var cr1 = document.createElement("div"); cr1.className = "chart-row"; el.appendChild(cr1);
+  var cr2 = document.createElement("div"); cr2.className = "chart-row"; el.appendChild(cr2);
+  addChart(cr1, "Receita Liquida", d, function(m){return m.receita_liquida;}, function(){return "bb";});
+  addChart(cr1, "Lucro Bruto", d, function(m){return m.lucro_bruto;}, function(){return "bg";});
+  addChart(cr1, "Resultado do Exercicio", d, function(m){return m.resultado_exercicio;}, function(v){return v>=0?"bp":"bn";});
+  addChart(cr2, "Pessoal (R$)", d, function(m){return Math.abs(m.pessoal);}, function(){return "bn";});
+  addChart(cr2, "Desp. Adm (R$)", d, function(m){return Math.abs(m.adm);}, function(){return "bn";});
+  addChart(cr2, "% Margem Bruta", d, function(m){return m.receita_liquida?m.lucro_bruto/m.receita_liquida:0;}, function(v){return v>=0.70?"bp":v>=0.55?"bg":"bn";});
+}
+
+function buildDRE() {
+  var el = document.getElementById("p-dre"); el.innerHTML = "";
+  var tb = document.createElement("div"); tb.className = "toolbar";
+  tb.innerHTML = '<span class="tlbl">Modo:</span><button class="mbtn active" id="bval" onclick="setMode(\'val\')">Valores R$</button><button class="mbtn" id="bpct" onclick="setMode(\'pct\')">% Receita Liq.</button>';
+  el.appendChild(tb);
+  var d = getData();
+  buildTable(el, d, DRE_ROWS,
+    function(m, k) { if (k.charAt(0) === "_") return 0; return m[k] || 0; },
+    function(v, k, m) {
+      if (curMode === "pct") {
+        var rl = m ? (m.receita_liquida || 1) : 1;
+        return v ? fmtP(v/rl) : "-";
+      }
+      return fmtF(v);
+    }
+  );
+}
+
+function buildMargens() {
+  var el = document.getElementById("p-margens"); el.innerHTML = "";
+  var d = getData();
+  var tRL = tot(d,"receita_liquida"), tLB = tot(d,"lucro_bruto"), tCMV = tot(d,"custos_total");
+  buildKPIs(el, [
+    {l:"Rec. Liq. Total", v:fmtK(tRL), c:"blue"},
+    {l:"Lucro Bruto Total", v:fmtK(tLB), c:"pos"},
+    {l:"Margem Bruta", v:fmtP(tRL?tLB/tRL:0), c:"pos", s:"% Rec. Liquida"},
+    {l:"CMV Total", v:fmtK(Math.abs(tCMV)), c:"neg", s:fmtP(tRL?Math.abs(tCMV)/tRL:0)+" da rec."}
+  ]);
+  var cr = document.createElement("div"); cr.className = "chart-row"; el.appendChild(cr);
+  addChart(cr, "Receita Liquida", d, function(m){return m.receita_liquida;}, function(){return "bb";});
+  addChart(cr, "Lucro Bruto", d, function(m){return m.lucro_bruto;}, function(v){return v>=0?"bp":"bn";});
+  addChart(cr, "% Margem Bruta", d, function(m){return m.receita_liquida?m.lucro_bruto/m.receita_liquida:0;}, function(v){return v>=0.70?"bp":v>=0.55?"bg":"bn";});
+  var mrows = [
+    {k:"_r", label:"RECEITA E MARGEM", type:"sec"},
+    {k:"receita_bruta", label:"Receita Bruta", type:"sub"},
+    {k:"deducoes", label:"(-) ICMS / Deducoes", type:"ind"},
+    {k:"receita_liquida", label:"Receita Liquida", type:"sub"},
+    {k:"custos_total", label:"(-) CMV + Depreciacao", type:"ind"},
+    {k:"lucro_bruto", label:"Lucro Bruto", type:"sub"},
+    {k:"mg_pct", label:"% Margem Bruta", type:"ind"}
+  ];
+  buildTable(el, d, mrows,
+    function(m, k) { if (k === "mg_pct") return m.receita_liquida ? m.lucro_bruto/m.receita_liquida : 0; return m[k] || 0; },
+    function(v, k) { return k === "mg_pct" ? fmtP(v) : fmtF(v); }
+  );
+}
+
+function buildDespesas() {
+  var el = document.getElementById("p-despesas"); el.innerHTML = "";
+  var d = getData();
+  var cr = document.createElement("div"); cr.className = "chart-row"; el.appendChild(cr);
+  addChart(cr, "Pessoal", d, function(m){return Math.abs(m.pessoal);}, function(){return "bn";});
+  addChart(cr, "Adm Geral", d, function(m){return Math.abs(m.adm);}, function(){return "bn";});
+  addChart(cr, "Resultado Exercicio", d, function(m){return m.resultado_exercicio;}, function(v){return v>=0?"bp":"bn";});
+  var drows = [
+    {k:"_d", label:"DESPESAS OPERACIONAIS", type:"sec"},
+    {k:"pessoal", label:"Despesas com Pessoal", type:"ind"},
+    {k:"pes_pct", label:"% Pessoal / Rec.", type:"ind"},
+    {k:"adm", label:"Despesas Administrativas", type:"ind"},
+    {k:"adm_pct", label:"% Adm / Rec.", type:"ind"},
+    {k:"aluguel", label:"  Aluguel", type:"ind"},
+    {k:"energia", label:"  Energia Eletrica", type:"ind"},
+    {k:"marketing", label:"  Marketing", type:"ind"},
+    {k:"taxa_cartao", label:"  Taxa Cartao", type:"ind"},
+    {k:"juros", label:"  Juros Passivos", type:"ind"},
+    {k:"_r", label:"RESULTADO COMPLETO", type:"sec"},
+    {k:"resultado_operacional", label:"Resultado Operacional", type:"sub"},
+    {k:"receita_nao_op", label:"(+) Rec. Nao Operacionais", type:"ind"},
+    {k:"ir_csll", label:"(-) IR e CSLL", type:"ind"},
+    {k:"resultado_exercicio", label:"Resultado do Exercicio", type:"tot"},
+    {k:"re_pct", label:"% Resultado / Rec.", type:"ind"}
+  ];
+  buildTable(el, d, drows,
+    function(m, k) {
+      if (k === "pes_pct") return m.receita_liquida ? m.pessoal/m.receita_liquida : 0;
+      if (k === "adm_pct") return m.receita_liquida ? m.adm/m.receita_liquida : 0;
+      if (k === "re_pct") return m.receita_liquida ? m.resultado_exercicio/m.receita_liquida : 0;
+      return m[k] || 0;
+    },
+    function(v, k) {
+      if (k === "pes_pct" || k === "adm_pct" || k === "re_pct") return fmtP(v);
+      return fmtF(v);
+    }
+  );
+}
+
+function buildComp() {
+  var el = document.getElementById("p-comp"); el.innerHTML = "";
+  var grp = D["Gruppo"];
+  var UNITS = ["Centrale", "El Carbon JK", "Timo JK"];
+  var cr = document.createElement("div"); cr.className = "chart-row"; el.appendChild(cr);
+  for (var ui = 0; ui < UNITS.length; ui++) {
+    (function(u) {
+      addChart(cr, u + " - Resultado", D[u], function(m){return m.resultado_exercicio;}, function(v){return v>=0?"bp":"bn";});
+    })(UNITS[ui]);
+  }
+  addChart(cr, "Grupo - Resultado", grp, function(m){return m.resultado_exercicio;}, function(v){return v>=0?"bp":"bn";});
+  var cw = document.createElement("div"); cw.className = "cw"; el.appendChild(cw);
+  var tbl = document.createElement("table"); tbl.className = "cm";
+  var thead = document.createElement("thead");
+  var thr = document.createElement("tr");
+  var headers = ["Mes","Centrale Rec.","Centrale Res.","El Carbon Rec.","El Carbon Res.","Timo JK Rec.","Timo JK Res.","Grupo Rec.","Grupo Res."];
+  for (var i = 0; i < headers.length; i++) {
+    var th = document.createElement("th"); th.textContent = headers[i]; thr.appendChild(th);
+  }
+  thead.appendChild(thr); tbl.appendChild(thead);
+  var tbody = document.createElement("tbody");
+  for (var gi = 0; gi < grp.length; gi++) {
+    var lbl = grp[gi].label;
+    var gRE = grp[gi].resultado_exercicio || 0;
+    var gRL = grp[gi].receita_liquida || 0;
+    var tr = document.createElement("tr");
+    tr.className = gRE > 0 ? "trpos" : gRE < 0 ? "trneg" : "";
+    var cells = [lbl];
+    for (var ui = 0; ui < UNITS.length; ui++) {
+      var m = find(D[UNITS[ui]], lbl);
+      cells.push(m ? fmtK(m.receita_liquida) : "-");
+      cells.push(m ? fmtK(m.resultado_exercicio) + (m.resultado_exercicio >= 0 ? " OK" : " -") : "-");
+    }
+    cells.push(fmtK(gRL));
+    cells.push(fmtK(gRE) + (gRE >= 0 ? " OK" : " -"));
+    for (var ci = 0; ci < cells.length; ci++) {
+      var td = document.createElement("td"); td.textContent = cells[ci]; tr.appendChild(td);
+    }
+    tbody.appendChild(tr);
+  }
+  var trT = document.createElement("tr"); trT.className = "trtot";
+  var totCells = ["TOTAL"];
+  for (var ui = 0; ui < UNITS.length; ui++) {
+    totCells.push(fmtK(tot(D[UNITS[ui]], "receita_liquida")));
+    totCells.push(fmtK(tot(D[UNITS[ui]], "resultado_exercicio")));
+  }
+  totCells.push(fmtK(tot(grp, "receita_liquida")));
+  totCells.push(fmtK(tot(grp, "resultado_exercicio")));
+  for (var i = 0; i < totCells.length; i++) {
+    var td = document.createElement("td"); td.textContent = totCells[i]; trT.appendChild(td);
+  }
+  tbody.appendChild(trT);
+  tbl.appendChild(tbody); cw.appendChild(tbl);
+}
+
+function buildAll() {
+  buildVisao();
+  buildDRE();
+  buildMargens();
+  buildDespesas();
+  buildComp();
+}
+
+buildHdr();
+buildAll();
+</script>
+</body>
+</html>
